@@ -1,0 +1,38 @@
+{
+  "name": "playwright-sample-project",
+  "version": "1.0.0",
+  "description": "A comprehensive Playwright sample project demonstrating UI, API, database, and performance testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:db": "playwright test tests/db",
+    "test:performance": "playwright test tests/performance",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "install:browsers": "playwright install"
+  },
+  "keywords": [
+    "playwright",
+    "testing",
+    "automation",
+    "typescript",
+    "ui-testing",
+    "api-testing",
+    "performance-testing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.0",
+    "playwright": "^1.55.0"
+  }
+}
