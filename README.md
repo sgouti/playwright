@@ -4,11 +4,15 @@ A simple Playwright sample project for beginners demonstrating basic UI and API 
 
 ## 🚀 Features
 
-- **Page Object Model (POM)** - Simple, clean page abstractions
-- **Multi-browser Testing** - Chrome, Firefox, Safari
-- **API Testing** - Basic API testing examples
+- **Page Object Model (POM)** - Clean page abstractions with BasePage utilities
+- **Multi-browser Testing** - Chrome, Firefox, Safari support
+- **Global Authentication** - Automated login setup with stored auth state
+- **Environment Configuration** - Multi-environment support (dev/staging/prod)
+- **Data-Driven Testing** - Parameterized tests with CSV/JSON data
+- **API Testing** - Comprehensive API testing examples
+- **Performance Testing** - Built-in performance monitoring
 - **TypeScript** - Full type safety and IDE support
-- **Simple Structure** - Easy to understand for beginners
+- **CI/CD Integration** - GitHub Actions with test sharding
 
 ## 📁 Project Structure
 
@@ -17,12 +21,41 @@ playwright-sample-project/
 ├── tests/                   # Test files
 │   ├── ui/                 # UI tests
 │   │   └── login.ui.spec.ts
-│   └── api/                # API tests
-│       └── users.api.spec.ts
+│   ├── api/                # API tests
+│   └── db/                 # Database tests
 ├── pages/                  # Page Object Model classes
+│   ├── BasePage.ts        # Base page with common utilities
 │   └── LoginPage.ts       # Login page implementation
-├── docs/                   # Documentation
-└── playwright.config.ts    # Playwright configuration
+├── config/                 # Configuration files
+│   ├── env.config.ts      # Environment configuration
+│   └── test.config.ts     # Test constants and settings
+├── global-setup/          # Global setup and teardown
+│   ├── global-setup.ts    # Authentication setup
+│   └── global-teardown.ts # Cleanup tasks
+├── utils/                 # Utility functions
+├── data/                  # Test data files
+├── docs/                  # Documentation
+├── .auth/                 # Stored authentication state
+├── .env.example          # Environment variables template
+└── playwright.config.ts   # Playwright configuration
+```
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone and install
+git clone <repository-url>
+cd playwright-sample-project
+npm install
+
+# 2. Install browsers
+npm run setup
+
+# 3. Run tests (includes automatic login setup)
+npm test
+
+# 4. View results
+npm run report
 ```
 
 ## 🛠️ Getting Started
@@ -78,7 +111,8 @@ playwright-sample-project/
    cp .env.example .env
    
    # Edit .env with your specific configuration
-   # Available on Windows, macOS, and Linux
+   # The project includes multi-environment support (dev/staging/prod)
+   # Default credentials: standard_user / secret_sauce (SauceDemo)
    ```
 
 ### IDE Setup (VS Code)
@@ -97,11 +131,158 @@ playwright-sample-project/
    }
    ```
 
+## 🔐 Authentication Setup
+
+This project uses **global authentication setup** to automatically log in once and reuse the authentication state across all tests.
+
+### How It Works
+
+1. **Global Setup** (`global-setup/global-setup.ts`):
+   - Runs before all tests
+   - Logs in with configured credentials
+   - Stores authentication state in `.auth/user.json`
+
+2. **Test Execution**:
+   - All tests start with stored authentication
+   - No need to log in manually in each test
+   - Faster test execution
+
+### Configuration
+
+**Environment Variables** (`.env`):
+```bash
+# Test credentials
+ADMIN_USERNAME=standard_user
+ADMIN_PASSWORD=secret_sauce
+
+# Or use user credentials
+USER_USERNAME=standard_user  
+USER_PASSWORD=secret_sauce
+
+# Environment selection
+TEST_ENV=dev  # dev, staging, or prod
+```
+
+**Multi-Environment Support** (`config/env.config.ts`):
+- Development: SauceDemo (default)
+- Staging: Custom staging environment
+- Production: Custom production environment
+
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (with global authentication setup)
 npm test
+
+# Run specific test suites
+npx playwright test tests/ui/
+npx playwright test tests/api/
+
+# Run tests in different environments
+TEST_ENV=staging npx playwright test
+TEST_ENV=prod npx playwright test
+
+# Run tests with specific browsers
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+
+# Run tests in headed mode (see browser)
+npx playwright test --headed
+
+# Run tests with debug mode
+npx playwright test --debug
+```
+
+## ⚙️ Configuration
+
+### Test Configuration (`config/test.config.ts`)
+
+The project includes centralized test configuration:
+
+```typescript
+export const TEST_CONFIG = {
+  // User credentials
+  ADMIN: {
+    username: 'standard_user',
+    password: 'secret_sauce',
+    role: 'admin',
+  },
+  
+  // Timeouts
+  DEFAULT_TIMEOUT: 30000,
+  LONG_TIMEOUT: 60000,
+  SHORT_TIMEOUT: 5000,
+  
+  // File paths
+  PATHS: {
+    DOWNLOADS: './test-results/downloads',
+    UPLOADS: './data/uploads',
+    REPORTS: './test-results/reports',
+  },
+};
+```
+
+### Environment Configuration (`config/env.config.ts`)
+
+Multi-environment support with automatic environment variable overrides:
+
+- **Development**: Local testing with SauceDemo
+- **Staging**: Pre-production environment
+- **Production**: Live environment testing
+
+### Playwright Configuration (`playwright.config.ts`)
+
+Key features:
+- Global setup/teardown
+- Stored authentication state
+- Multi-browser support
+- Automatic retries on CI
+- HTML reporting
+
+## 🏗️ Page Object Model
+
+### BasePage (`pages/BasePage.ts`)
+
+Provides common utilities for all page objects:
+
+```typescript
+// Screenshot comparison
+await basePage.compareScreenshot('homepage');
+
+// File operations
+await basePage.uploadFile(fileInput, 'test-data.csv');
+const download = await basePage.downloadFile(() => page.click('Download'));
+
+// Network utilities
+await basePage.waitForNetworkIdle();
+await basePage.waitForApiResponse('/api/users');
+
+// Storage management
+await basePage.setLocalStorage('token', 'abc123');
+const token = await basePage.getLocalStorage('token');
+```
+
+### LoginPage (`pages/LoginPage.ts`)
+
+Extends BasePage with login-specific functionality:
+
+```typescript
+const loginPage = new LoginPage(page);
+
+// Navigation and login
+await loginPage.navigate();
+await loginPage.login('username', 'password');
+await loginPage.waitForLoginComplete();
+
+// Form interactions
+await loginPage.fillUsername('user');
+await loginPage.fillPassword('pass');
+await loginPage.clickLogin();
+
+// Validation
+const isError = await loginPage.isErrorVisible();
+const errorText = await loginPage.getErrorMessage();
+```
 
 # Run specific test types
 npm run test:ui          # UI tests only
@@ -747,6 +928,20 @@ await context.close();
 - name: Run tests
   run: npx playwright test
   timeout-minutes: 30
+```
+
+**Authentication issues:**
+```bash
+# Clear stored auth state and retry
+rm -rf .auth/
+npx playwright test
+
+# Run global setup manually
+npx playwright test --global-setup=./global-setup/global-setup.ts
+
+# Check environment variables
+echo $ADMIN_USERNAME
+echo $TEST_ENV
 ```
 
 **Docker issues:**

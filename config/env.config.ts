@@ -11,8 +11,6 @@ export interface EnvironmentConfig {
   environment: 'dev' | 'staging' | 'prod';
   headless: boolean;
   slowMo: number;
-  username: string;
-  password: string;
 }
 
 const environments: Record<string, EnvironmentConfig> = {
@@ -24,8 +22,6 @@ const environments: Record<string, EnvironmentConfig> = {
     environment: 'dev',
     headless: false,
     slowMo: 100,
-    username: 'standard_user',
-    password: 'secret_sauce',
   },
   staging: {
     baseUrl: 'https://staging.example.com',
@@ -36,8 +32,6 @@ const environments: Record<string, EnvironmentConfig> = {
     headless: true,
     slowMo: 0,
 
-    username: 'standard_user',
-    password: 'secret_sauce',
   },
   prod: {
     baseUrl: 'https://example.com',
@@ -48,8 +42,6 @@ const environments: Record<string, EnvironmentConfig> = {
     headless: true,
     slowMo: 0,
 
-    username: 'standard_user',
-    password: 'secret_sauce',
   },
 };
 
@@ -66,9 +58,7 @@ export const config: EnvironmentConfig = {
   timeout: parseInt(process.env.TIMEOUT || '') || environments[currentEnv].timeout,
   headless: process.env.HEADLESS === 'true' || environments[currentEnv].headless,
   slowMo: parseInt(process.env.SLOW_MO || '') || environments[currentEnv].slowMo,
-  // Override credentials from environment variables if provided
-  username: process.env.ADMIN_USERNAME || process.env.USER_USERNAME || environments[currentEnv].username,
-  password: process.env.ADMIN_PASSWORD || process.env.USER_PASSWORD || environments[currentEnv].password,
-};
+  
+  };
 
 export default config;

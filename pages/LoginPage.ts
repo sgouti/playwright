@@ -1,5 +1,6 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator,defineConfig } from '@playwright/test';
 import { BasePage } from './BasePage';
+import environments from 'config/env.config';
 
 export class LoginPage extends BasePage {
   readonly usernameInput: Locator;
@@ -7,7 +8,7 @@ export class LoginPage extends BasePage {
   readonly loginButton: Locator;
   readonly errorMessage: Locator;
 
-  constructor(page: Page) {
+  constructor(page: Page,) {
     super(page);
     this.usernameInput = page.locator('#user-name');
     this.passwordInput = page.locator('#password');
@@ -18,9 +19,9 @@ export class LoginPage extends BasePage {
   /**
    * Navigate to login page
    */
-  async navigate() {
+  async navigate(url: string = '') {
     // Navigate to the root path so Playwright will resolve baseURL from the test config
-    await this.page.goto('/');
+    await this.page.goto(url || environments.baseUrl);
   }
 
   /**

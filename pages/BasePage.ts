@@ -3,7 +3,7 @@ import { Page, Locator, expect } from '@playwright/test';
 
 /**
  * BasePage – Test-support layer only.
- * No browser-level helpers (context, route, permissions, cookies, viewport, etc.).
+ *  browser-level helpers (context, route, permissions, cookies, viewport, etc.).
  * No page-level workflows (click, fill, etc.).
  * Only low-level, reusable helpers that tests or page-models can call.
  */

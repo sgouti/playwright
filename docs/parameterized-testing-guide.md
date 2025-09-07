@@ -284,7 +284,29 @@ test.describe('Data-Driven Database Tests', () => {
 ## Examples
 
 See the following test files for complete examples:
-- `tests/ui/data-driven.ui.spec.ts` - Basic data-driven UI tests
-- `tests/ui/advanced-data-driven.ui.spec.ts` - Advanced test generation
-- `tests/api/users.api.spec.ts` - Data-driven API tests
-- `tests/db/database.db.spec.ts` - Data-driven database tests
+- `tests/ui/login.ui.spec.ts` - Authentication and UI tests
+- `tests/ui/data-driven.ui.spec.ts` - Basic data-driven UI tests (if available)
+- `tests/api/users.api.spec.ts` - Data-driven API tests (if available)
+- `tests/db/database.db.spec.ts` - Data-driven database tests (if available)
+
+## Integration with Test Configuration
+
+Use the centralized test configuration for consistent settings:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import TEST_CONFIG from '../../config/test.config';
+
+test.describe('Data-Driven Tests with Config', () => {
+  test('should use configured timeouts', async ({ page }) => {
+    // Use centralized timeout configuration
+    await page.goto('/', { timeout: TEST_CONFIG.DEFAULT_TIMEOUT });
+    
+    // Use configured paths
+    const downloadPath = TEST_CONFIG.PATHS.DOWNLOADS;
+    
+    // Use configured credentials
+    const { username, password } = TEST_CONFIG.ADMIN;
+  });
+});
+```

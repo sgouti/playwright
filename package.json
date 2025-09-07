@@ -5,7 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "install:browsers": "playwright install"
+    "test:ui": "playwright test tests/ui/",
+    "test:api": "playwright test tests/api/",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:staging": "TEST_ENV=staging playwright test",
+    "test:prod": "TEST_ENV=prod playwright test",
+    "install:browsers": "playwright install",
+    "report": "playwright show-report",
+    "setup": "playwright install && npm run install:browsers"
   },
   "keywords": [
     "playwright",

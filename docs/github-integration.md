@@ -329,13 +329,17 @@ Create `.kiro/settings/mcp.json`:
       "args": ["playwright-mcp-server@latest"],
       "env": {
         "PLAYWRIGHT_PROJECT_PATH": ".",
+        "PLAYWRIGHT_CONFIG_PATH": "./playwright.config.ts",
+        "TEST_CONFIG_PATH": "./config/test.config.ts",
+        "ENV_CONFIG_PATH": "./config/env.config.ts",
         "FASTMCP_LOG_LEVEL": "INFO"
       },
       "disabled": false,
       "autoApprove": [
         "generate_test",
         "analyze_test_results",
-        "suggest_improvements"
+        "suggest_improvements",
+        "update_page_objects"
       ]
     },
     "test-data-generator": {
