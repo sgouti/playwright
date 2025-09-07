@@ -1,6 +1,7 @@
 import { LoginPage } from '@pages/LoginPage';
 import { chromium, FullConfig } from '@playwright/test';
 import environments from 'config/env.config';
+import TEST_CONFIG from '@config/test.config'; 
 
 async function globalSetup(config: FullConfig) {
   console.log('Setting up global authentication...');
@@ -14,8 +15,7 @@ async function globalSetup(config: FullConfig) {
   try {
     // Navigate to the login page
     await page.goto(environments.baseUrl);
-    await loginPage.login(environments.username, environments.password);
-    await page.waitForURL('**/inventory**', { timeout: 10000 });
+    await loginPage.login(TEST_CONFIG.ADMIN.username, TEST_CONFIG.ADMIN.password);
     await page.context().storageState({
       path: '.auth/user.json'
     });
