@@ -1,58 +1,28 @@
 # Playwright Sample Project
 
-A comprehensive Playwright sample project demonstrating various testing capabilities including UI, API, database, and performance testing with TypeScript, Page Object Model, and advanced testing patterns.
+A simple Playwright sample project for beginners demonstrating basic UI and API testing with TypeScript and Page Object Model pattern.
 
 ## 🚀 Features
 
-- **Page Object Model (POM)** - Clean, maintainable page abstractions
-- **Multi-browser Testing** - Chrome, Firefox, Safari, and mobile
-- **API Testing** - RESTful API testing with validation
-- **Database Testing** - Mock database operations and validation
-- **Performance Testing** - Load time and Core Web Vitals monitoring
-- **Data-driven Testing** - JSON and CSV data support
-- **Custom Fixtures** - Dependency injection and test utilities
-- **Global Setup/Teardown** - Environment preparation and cleanup
-- **Visual Regression** - Screenshot comparison testing
-- **Accessibility Testing** - Basic accessibility validation
+- **Page Object Model (POM)** - Simple, clean page abstractions
+- **Multi-browser Testing** - Chrome, Firefox, Safari
+- **API Testing** - Basic API testing examples
 - **TypeScript** - Full type safety and IDE support
+- **Simple Structure** - Easy to understand for beginners
 
 ## 📁 Project Structure
 
 ```
 playwright-sample-project/
-├── tests/                    # Test files organized by type
-│   ├── ui/                  # UI tests using POM
-│   │   ├── login.ui.spec.ts
-│   │   └── data-driven.ui.spec.ts
-│   ├── api/                 # API tests
-│   │   └── users.api.spec.ts
-│   ├── db/                  # Database tests
-│   │   └── database.db.spec.ts
-│   └── performance/         # Performance tests
-│       └── load.perf.spec.ts
-├── pages/                   # Page Object Model classes
-│   ├── BasePage.ts         # Abstract base page
-│   ├── LoginPage.ts        # Login page implementation
-│   ├── DashboardPage.ts    # Dashboard page implementation
-│   └── PageFactory.ts      # Page factory pattern
-├── utils/                   # Utility functions and helpers
-│   ├── ScreenshotUtils.ts  # Screenshot and visual testing
-│   ├── ValidationUtils.ts  # Validation and assertions
-│   ├── DatabaseUtils.ts    # Database operations
-│   ├── ApiUtils.ts         # API client wrapper
-│   └── DataUtils.ts        # Test data management
-├── config/                  # Configuration files
-│   ├── env.config.ts       # Environment configuration
-│   └── test.config.ts      # Test constants and settings
-├── data/                    # Test data files
-│   └── users.json          # Sample user data
-├── global-setup/            # Global setup and teardown
-│   ├── global-setup.ts     # Pre-test setup
-│   └── global-teardown.ts  # Post-test cleanup
-├── fixtures/                # Custom Playwright fixtures
-│   └── fixtures.ts         # Custom test fixtures
-├── docs/                    # Documentation
-└── playwright.config.ts     # Main Playwright configuration
+├── tests/                   # Test files
+│   ├── ui/                 # UI tests
+│   │   └── login.ui.spec.ts
+│   └── api/                # API tests
+│       └── users.api.spec.ts
+├── pages/                  # Page Object Model classes
+│   └── LoginPage.ts       # Login page implementation
+├── docs/                   # Documentation
+└── playwright.config.ts    # Playwright configuration
 ```
 
 ## 🛠️ Getting Started
@@ -135,9 +105,7 @@ npm test
 
 # Run specific test types
 npm run test:ui          # UI tests only
-npm run test:api         # API tests only  
-npm run test:db          # Database tests only
-npm run test:performance # Performance tests only
+npm run test:api         # API tests only
 
 # Run with different options
 npm run test:headed      # Run in headed mode
@@ -145,16 +113,14 @@ npm run test:debug       # Run in debug mode
 npm run test:report      # Show HTML report
 ```
 
-### Environment Configuration
+### Configuration
 
-Set environment variables in `.env` file:
+The base URL is configured in `playwright.config.ts`:
 
-```bash
-TEST_ENV=dev                    # Environment (dev/staging/prod)
-BASE_URL=http://localhost:3000  # Application URL
-API_URL=http://localhost:3001   # API base URL
-HEADLESS=false                  # Browser mode
-TIMEOUT=30000                   # Default timeout
+```typescript
+use: {
+  baseURL: 'http://localhost:3000',
+}
 ```
 
 ## 🧪 Test Examples
@@ -162,41 +128,137 @@ TIMEOUT=30000                   # Default timeout
 ### UI Test with Page Object Model
 
 ```typescript
-test('should login successfully', async ({ loginPage, dashboardPage }) => {
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+
+test('should login successfully', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  
   await loginPage.navigate();
   await loginPage.login('admin@example.com', 'admin123');
-  await loginPage.waitForLoginComplete();
   
-  await dashboardPage.validatePageLoaded();
-  const welcomeMessage = await dashboardPage.getWelcomeMessage();
-  expect(welcomeMessage).toContain('Welcome');
+  // Verify successful login
+  await expect(page).toHaveURL(/dashboard|home/);
 });
+```
+
+### Using BasePage Test-Support Utilities
+
+```typescript
+test('visual regression test', async ({ page }) => {
+  const basePage = new BasePage(page);
+  const loginPage = new LoginPage(page);
+  
+  // Navigate with specific wait condition
+  await basePage.navigate('/login', 'networkidle');
+  await basePage.waitForPageStable();
+  
+  // Compare screenshot for visual testing
+  await basePage.compareScreenshot('login-page', { fullPage: true });
+  
+  // Perform login (page-specific action)
+  await loginPage.login('admin@example.com', 'admin123');
+  
+  // Compare after login
+  await basePage.compareScreenshot('dashboard-after-login');
+});
+
+test('API mocking test', async ({ page }) => {
+  const basePage = new BasePage(page);
+  const loginPage = new LoginPage(page);
+  
+  // Mock login API response
+  await basePage.mockApiResponse('/api/login', { 
+    success: true, 
+    token: 'mock-token' 
+  });
+  
+  await basePage.navigate('/login');
+  await loginPage.login('admin@example.com', 'admin123');
+  
+  // Wait for mocked API response
+  await basePage.waitForApiResponse('/api/login');
+});
+
+test('performance monitoring test', async ({ page }) => {
+  const basePage = new BasePage(page);
+  const loginPage = new LoginPage(page);
+  
+  await basePage.navigate('/login');
+  await loginPage.login('admin@example.com', 'admin123');
+  
+  // Get performance metrics
+  const metrics = await basePage.getPerformanceMetrics();
+  expect(metrics.loadTime).toBeLessThan(3000);
+  expect(metrics.firstContentfulPaint).toBeLessThan(1500);
+});
+
+test('browser storage test', async ({ page }) => {
+  const basePage = new BasePage(page);
+  const loginPage = new LoginPage(page);
+  
+  // Set up test data in localStorage
+  await basePage.navigate('/login');
+  await basePage.setLocalStorage('testMode', 'true');
+  
+  await loginPage.login('admin@example.com', 'admin123');
+  
+  // Verify storage after login
+  const authToken = await basePage.getLocalStorage('authToken');
+  expect(authToken).toBeTruthy();
+  
+  // Clean up
+  await basePage.clearBrowserStorage();
+});
+
+test('file operations test', async ({ page }) => {
+  const basePage = new BasePage(page);
+  
+  await basePage.navigate('/profile');
+  
+  // Upload file using test-support utility
+  const fileInput = page.locator('input[type="file"]');
+  await basePage.uploadFile(fileInput, 'test-files/avatar.jpg');
+  
+  // Download file using test-support utility
+  const download = await basePage.downloadFile(async () => {
+    await page.click('text=Export Data');
+  });
+  
+  expect(download.suggestedFilename()).toBe('user-data.csv');
+});
+```
+
+### Page-Specific Actions (in LoginPage)
+
+```typescript
+// These actions belong in page classes, not BasePage
+await loginPage.fillUsername('admin@example.com');
+await loginPage.fillPassword('admin123');
+await loginPage.clickLogin();
+await loginPage.login('admin@example.com', 'admin123');
+
+// Direct Playwright methods for page-specific actions
+await loginPage.usernameInput.fill('username');
+await loginPage.loginButton.click();
+await loginPage.errorMessage.isVisible();
 ```
 
 ### API Test Example
 
 ```typescript
-test('should create user via API', async ({ apiUtils }) => {
-  const newUser = { username: 'testuser', email: 'test@example.com' };
-  const response = await apiUtils.post('/users', newUser);
-  
-  expect(response.status).toBe(201);
-  expect(response.body).toHaveProperty('id');
-});
-```
+import { test, expect } from '@playwright/test';
 
-### Data-Driven Test
-
-```typescript
-const testUsers = await DataUtils.loadJsonData('users.json');
-
-for (const user of testUsers.validUsers) {
-  test(`should login as ${user.username}`, async ({ loginPage }) => {
-    await loginPage.navigate();
-    await loginPage.login(user.username, user.password);
-    await loginPage.waitForLoginComplete();
+test('should login via API', async ({ request }) => {
+  const response = await request.post('/api/login', {
+    data: {
+      username: 'admin@example.com',
+      password: 'admin123'
+    }
   });
-}
+  
+  expect(response.status()).toBe(200);
+});
 ```
 
 ## 🔧 Configuration
@@ -205,28 +267,15 @@ for (const user of testUsers.validUsers) {
 
 The main configuration supports:
 - Multiple browsers (Chrome, Firefox, Safari)
-- Mobile device testing
 - Parallel execution
 - Automatic retries
-- Screenshot/video capture
-- Custom timeouts
-
-### Custom Fixtures
-
-Available fixtures:
-- `pageFactory` - Page object factory
-- `apiUtils` - API testing utilities  
-- `dbUtils` - Database operations
-- `screenshotUtils` - Visual testing
-- `validationUtils` - Assertion helpers
-- `authenticatedContext` - Pre-authenticated browser context
+- Screenshot/video capture on failure
+- HTML reporting
 
 ## 📊 Reporting
 
-Tests generate multiple report formats:
+Tests generate HTML reports:
 - **HTML Report** - Interactive test results (`npm run test:report`)
-- **JSON Report** - Machine-readable results
-- **JUnit XML** - CI/CD integration
 - **Screenshots** - Failure captures
 - **Videos** - Test execution recordings
 
@@ -743,7 +792,7 @@ npm --version
 - [Playwright Documentation](https://playwright.dev/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Page Object Model Pattern](https://playwright.dev/docs/pom)
-- [Test Fixtures Guide](https://playwright.dev/docs/test-fixtures)
+- [Page Object Model Guide](https://playwright.dev/docs/pom)
 
 ## 🤝 Contributing
 

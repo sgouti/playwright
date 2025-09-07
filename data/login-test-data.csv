@@ -1,9 +1,0 @@
-username,password,role,expectedResult,testDescription
-admin@example.com,admin123,admin,success,Valid admin login
-user@example.com,user123,user,success,Valid user login
-guest@example.com,guest123,guest,success,Valid guest login
-invalid@example.com,wrongpass,user,error,Invalid password
-,admin123,admin,error,Empty username
-admin@example.com,,admin,error,Empty password
-notanemail,password123,user,error,Invalid email format
-admin@example.com,short,admin,error,Password too short

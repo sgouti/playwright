@@ -19,7 +19,7 @@
       "@utils/*": ["utils/*"],
       "@config/*": ["config/*"],
       "@data/*": ["data/*"],
-      "@fixtures/*": ["fixtures/*"],
+
       "@global-setup/*": ["global-setup/*"]
     },
     "types": ["node", "@playwright/test"],

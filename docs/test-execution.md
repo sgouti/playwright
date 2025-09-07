@@ -12,9 +12,7 @@ npm test
 
 # Run all tests with npm scripts
 npm run test:ui          # UI tests only
-npm run test:api         # API tests only  
-npm run test:db          # Database tests only
-npm run test:performance # Performance tests only
+npm run test:api         # API tests only
 ```
 
 ### Test Type Examples
@@ -23,13 +21,10 @@ npm run test:performance # Performance tests only
 # Run specific test categories
 npx playwright test tests/ui/           # All UI tests
 npx playwright test tests/api/          # All API tests
-npx playwright test tests/db/           # All database tests
-npx playwright test tests/performance/  # All performance tests
 
 # Run specific test files
 npx playwright test tests/ui/login.ui.spec.ts
 npx playwright test tests/api/users.api.spec.ts
-npx playwright test tests/db/database.db.spec.ts
 ```
 
 ## 🎯 Advanced Test Selection
@@ -323,32 +318,31 @@ npx playwright test \
 #### Basic UI Test with Page Object Model
 
 ```typescript
-import { test, expect } from '@fixtures/fixtures';
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../../pages/LoginPage';
 
 test.describe('Login Functionality', () => {
-  test('successful login with valid credentials', async ({ loginPage, dashboardPage }) => {
+  test('successful login with valid credentials', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    
     // Navigate to login page
     await loginPage.navigate();
     
     // Perform login
     await loginPage.login('admin@example.com', 'admin123');
-    await loginPage.waitForLoginComplete();
     
     // Verify successful login
-    await expect(dashboardPage.page).toHaveURL(/dashboard/);
-    expect(await dashboardPage.isPageLoaded()).toBe(true);
-    
-    const welcomeMessage = await dashboardPage.getWelcomeMessage();
-    expect(welcomeMessage).toContain('Welcome');
+    await expect(page).toHaveURL(/dashboard|home/);
   });
 
-  test('login failure with invalid credentials', async ({ loginPage }) => {
+  test('login failure with invalid credentials', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    
     await loginPage.navigate();
     await loginPage.login('invalid@example.com', 'wrongpassword');
     
     // Verify error message appears
     await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toHaveText('Invalid credentials');
   });
 });
 ```
@@ -356,8 +350,8 @@ test.describe('Login Functionality', () => {
 #### Data-Driven UI Test
 
 ```typescript
-import { test, expect } from '@fixtures/fixtures';
-import { DataUtils } from '@utils/DataUtils';
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../../pages/LoginPage';
 
 const testUsers = await DataUtils.loadJsonData('users.json');
 
@@ -394,7 +388,7 @@ test.describe('Data-Driven Login Tests', () => {
 #### RESTful API Testing
 
 ```typescript
-import { test, expect } from '@fixtures/fixtures';
+import { test, expect } from '@playwright/test';
 
 test.describe('User API Tests', () => {
   test('should create user via POST', async ({ apiUtils }) => {
@@ -483,7 +477,7 @@ test.describe('Authenticated API Tests', () => {
 ### Database Test Examples
 
 ```typescript
-import { test, expect } from '@fixtures/fixtures';
+import { test, expect } from '@playwright/test';
 
 test.describe('Database Tests', () => {
   test('should connect to database successfully', async ({ dbUtils }) => {
@@ -532,7 +526,7 @@ test.describe('Database Tests', () => {
 ### Performance Test Examples
 
 ```typescript
-import { test, expect } from '@fixtures/fixtures';
+import { test, expect } from '@playwright/test';
 
 test.describe('Performance Tests', () => {
   test('should load homepage within acceptable time', async ({ page, performanceUtils }) => {
