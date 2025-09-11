@@ -9,6 +9,7 @@ test.describe('E2E Test', async() => {
   const testData = await readCSV("data/testdata.csv");
 
   test.beforeEach(async ({ page,baseURL }) => {
+    console.log('Testing started');
     loginpage = new LoginPage(page);
     homePage = new HomePage(page);
     await loginpage.navigate(baseURL);
@@ -16,18 +17,15 @@ test.describe('E2E Test', async() => {
 
 
   testData.forEach((data, index) => {
-    test(`login with user +${index}`, async ({ page }) => {
-      
+  test(`login with user +${index}`, async ({ page }) => {
+      console.log(`login with user +${index} Testing started`);
       await loginpage.login(data.username, data.password);
       await expect(page).toHaveURL(/.*inventory.html/);
-      await homePage.logout();  
+      await homePage.logout(); 
+      console.log(`login with user +${index} Testing completed`); 
     });
   });
 
 
-  test.afterAll(async ({browser}) => {
-    console.log('All tests completed');
-    await browser.close();
-  });
 
 });

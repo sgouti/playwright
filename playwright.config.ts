@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  globalSetup: './global-setup/global-setup.ts',
+  //globalSetup: './global-setup/global-setup.ts',
   
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -18,7 +18,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : undefined,
   
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['html'],['list']],
@@ -47,7 +47,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chrome',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'] },
 
     }
   ],
