@@ -25,22 +25,25 @@ export default defineConfig({
   
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    headless: false,
+    headless: true,
 
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 
     /* Load stored auth state */
-    storageState: '.auth/user.json',
+    // storageState: '.auth/user.json',
     
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'off',
     
     /* Take screenshot on failure */
-    screenshot: 'only-on-failure',
+    screenshot: 'off',
     
     /* Record video on failure */
-    video: 'retain-on-failure',
+    video: 'off',
+    
+    /* Ignore SSL certificate errors */
+    ignoreHTTPSErrors: true,
   },
 
   /* Configure projects for major browsers */
@@ -48,8 +51,9 @@ export default defineConfig({
     {
       name: 'chrome',
       use: {
-        ...devices['Desktop Chrome'] },
-
+        ...devices['Desktop Chrome'],
+        channel: 'chrome',
+      },
     }
   ],
 

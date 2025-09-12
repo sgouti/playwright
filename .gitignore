@@ -1,0 +1,35 @@
+# Dependency directories
+node_modules/
+npm-debug.log*
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+playwright/.auth/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
+logs/
