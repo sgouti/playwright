@@ -1,26 +1,37 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import { InventoryPage } from '../pages/InventoryPage';
+import { TEST_CONFIG } from '../config/test.config';
 
 test.describe('Saucedemo Tests', () => {
-  test('should login and add 3 items to cart', async ({ page }) => {
+  let loginPage: LoginPage;
+  let inventoryPage: InventoryPage;
+
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page);
+    inventoryPage = new InventoryPage(page);
+    
     // Navigate to the website
-    await page.goto('https://www.saucedemo.com/');
+    await loginPage.navigate();
+  });
+
+  test('should login and add 3 items to cart', async ({ page }) => {
+    // Login with valid credentials from config
+    await loginPage.login(TEST_CONFIG.ADMIN.username, TEST_CONFIG.ADMIN.password);
     
-    // Login
-    await page.fill('#user-name', 'standard_user');
-    await page.fill('#password', 'secret_sauce');
-    await page.click('#login-button');
+    // Verify successful login by checking if inventory page is loaded
+    await inventoryPage.verifyInventoryPageLoaded();
     
-    // Verify successful login by checking if inventory container is visible
-    await expect(page.locator('#inventory_container')).toBeVisible();
-    
-    // Add 3 items to cart
-    const addToCartButtons = page.locator('[data-test^="add-to-cart"]');
-    for (let i = 0; i < 3; i++) {
-      await addToCartButtons.nth(i).click();
-    }
+    // Add 3 specific items to cart for more predictable testing
+    await inventoryPage.addItemToCartByDataTest('sauce-labs-backpack');
+    await inventoryPage.addItemToCartByDataTest('sauce-labs-bike-light');
+    await inventoryPage.addItemToCartByDataTest('sauce-labs-bolt-t-shirt');
     
     // Verify cart count is 3
-    const cartBadge = page.locator('.shopping_cart_badge');
-    await expect(cartBadge).toHaveText('3');
+    await inventoryPage.verifyCartItemCount(3);
+    
+    // Additional validation: verify cart badge shows correct count
+    const cartCount = await inventoryPage.getCartItemCount();
+    expect(cartCount).toBe('3');
   });
 });
