@@ -1,160 +1,217 @@
-# Playwright Testing Project
+# Playwright Test Generator Workflow
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+Follow this optimized workflow for every scenario:
 
-## Working Effectively
+1. **Receive Scenario:** Wait for the user to provide a test scenario.
 
-### Initial Setup - REQUIRED STEPS
-- Install dependencies: `npm install` -- takes ~3 seconds
-- Install system dependencies: `npx playwright install-deps` -- takes ~150 seconds (2.5 minutes). NEVER CANCEL.
-- **CRITICAL**: Browser installation fails with "Download failed: size mismatch" error. Use system Chrome instead.
-- Verify setup: `npx tsc --noEmit` -- takes ~2 seconds
-- Check Node.js version: Requires Node.js 20+ (v20.19.5 confirmed working)
+2. **Do Not Generate Test Code Immediately:**  
+   Never write Playwright test code based on the scenario alone.
 
-### Browser Setup - IMPORTANT LIMITATION
-- **CANNOT use**: `npx playwright install` -- consistently fails with download size mismatch error
-- **MUST use**: System Chrome with `channel: 'chrome'` configuration
-- System Chrome location: `/usr/bin/google-chrome-stable`
-- **ALWAYS run tests in headless mode** -- no display server available
+3. **Step-by-Step Execution:**  
+   - Use Playwright MCP tools to perform each step interactively using  **in incognito mode**.
+   - use **playwright.config.ts** file to fetch any global config like baseURL, headless, etc.
+   - Before each action, **display the selector you plan to use** (e.g., "Clicking button with selector: text=Submit").
+   - **Always use Playwright CSS selectors** (e.g., `page.locator('...')`), not JavaScript-based selectors.
+   - Prefer robust selectors like `text=`, `aria-label=`, `role=`, or unique attributes.
+   - **Do not interact directly with `<img>` or `<svg>` elements**. Instead, use the nearest interactive element (button, link, input) associated with them.
+   - If MCP cannot complete an action, **prompt the user for manual input** (selector, next step, clarification), then continue.
 
-### Running Tests 
-- Run all tests: `npm test` -- fails without downloaded browsers
-- **WORKING SOLUTION**: Use custom config with system Chrome:
-  ```typescript
-  projects: [
-    {
-      name: 'chrome',
-      use: {
-        ...devices['Desktop Chrome'],
-        channel: 'chrome', // Use system Chrome
-        headless: true,    // REQUIRED - no display
-        ignoreHTTPSErrors: true,
-        launchOptions: {
-          args: ['--ignore-certificate-errors', '--ignore-ssl-errors']
-        }
-      },
-    }
-  ]
-  ```
-- Run single test: `npx playwright test [testfile] --config=[custom-config]`
-- TypeScript compilation check: `npx tsc --noEmit` -- takes ~2 seconds
+4. **Action & Input History:**  
+   - Record actions, selectors, and any user-provided corrections or manual inputs.
+   - After each action, confirm with the user that the step was successful before proceeding.
+   - If an action fails, ask the user for help to correct it, then retry.
+   - use .env file to fetch any sensitive data like username, password, etc.
 
-### Report Generation
-- Generate HTML report: `npm run report` -- starts server on localhost:9323
-- **WARNING**: Report server runs indefinitely, use Ctrl+C to stop
+5. **Test Generation:**  
+   - After confirming all steps, generate a Playwright test file (TypeScript, using `@playwright/test`), using discovered selectors and flows.
+   - Save the test in the `tests` directory.
+   - **Ensure every test script is fully independent**, setting up its own preconditions and not depending on other tests.
+   - **Use appropriate test hooks** (`beforeEach`, `afterEach`, `beforeAll`, `afterAll`) when required for setup and cleanup.
 
-## Validation
-- **ALWAYS validate browser setup** before running tests by creating a simple local HTML test
-- **CANNOT test external sites** reliably due to SSL/network issues in environment
-- **ALWAYS test with local files** or mock data for reliable validation
-- Tests using SauceDemo (https://www.saucedemo.com/) may timeout or fail with SSL errors
-- **TypeScript validation works**: Run `npx tsc --noEmit` before making changes
+6.**Refactor to Playwright POM Standard:**  
+   - **Before creating any new pages or functions in the pages directory, check for existing pages and functions for re-usability**.
+   - Review the `pages/` directory to identify existing page objects that can be reused or extended.
+   - Look for common elements (login forms, navigation, buttons) that already exist in other page objects.
+   - Only create new page classes if no suitable existing ones can be reused or extended.
+   - After successful execution, refactor scripts to follow the Playwright Page Object Model (POM).
+   - Place reusable elements and functions in `pages/` directory as page classes.
+   - Tests must use these page objects for all interactions and assertions.
 
-## Common Tasks
+7. **Test Execution & Iteration:**  
+   - Execute the generated test.
+   - If it fails, analyze and adjust actions/selectors (ask user for help if needed), then regenerate and rerun until it passes with maximum retry should be 5.
 
-### Project Structure
+8. **Best Practices:**  
+   - Always display selector before acting.
+   - Use only robust, maintainable selectors.
+   - Avoid direct interaction with non-interactive elements; use their nearest interactive parent or associated element.
+   - Every test must be self-contained and runnable in isolation.
+   - Encapsulate element selectors and actions in page objects for maintainability.
+   - Maximize code reuse by checking existing page objects before creating new ones.
+   - **Use test hooks appropriately** for setup and cleanup operations.
+
+---
+
+## Test Hooks Usage Guidelines
+
+**When to use test hooks:**
+- `beforeEach`: Login, navigation, or setup needed before every test
+- `afterEach`: Logout, cleanup, or reset state after each test  
+- `beforeAll`: One-time setup (database connections, test data creation)
+- `afterAll`: One-time cleanup (closing connections, deleting test data)
+
+---
+
+## Example: Playwright POM Standard Structure
+
+**Directory Layout:**
 ```
-playwright/
+project-root/
 ├── tests/
-│   ├── ui/                  # UI tests (login.ui.spec.ts)
-│   ├── saucedemo.spec.ts    # Sample tests
-│   └── simple-test.spec.ts  # Local test example
-├── pages/                   # Page Object Model
-│   ├── BasePage.ts         # Base page utilities  
-│   ├── LoginPage.ts        # Login page implementation
-│   └── homepage.ts         # Home page implementation
-├── config/                 # Configuration files
-│   ├── env.config.ts       # Environment configuration
-│   └── test.config.ts      # Test constants
-├── utils/                  # Utility functions
-│   ├── helper.ts           # Helper functions
-│   └── ScreenshotUtils.ts  # Screenshot utilities
-├── data/                   # Test data
-│   └── testdata.csv        # CSV test data for data-driven tests
-├── playwright.config.ts    # Main Playwright configuration
-├── package.json           # Dependencies and scripts
-└── tsconfig.json          # TypeScript configuration
+│   └── login.spec.ts
+├── pages/
+│   └── LoginPage.ts
+├── playwright.config.ts
 ```
 
-### NPM Scripts Available
-```bash
-npm test                    # Run all tests (requires browsers)
-npm run test:ui            # Run UI tests only (requires browsers)
-npm run test:api           # Run API tests (requires browsers)
-npm run test:headed        # Run in headed mode (requires browsers + display)
-npm run test:debug         # Run in debug mode (requires browsers)
-npm run test:staging       # Run with staging environment
-npm run test:prod          # Run with production environment
-npm run install:browsers   # Install Playwright browsers (FAILS)
-npm run report             # Show HTML report (starts server)
-npm run setup              # Full setup (FAILS due to browser install)
+**pages/LoginPage.ts**
+```typescript
+import { Page, Locator } from '@playwright/test';
+
+export class LoginPage {
+  readonly page: Page;
+  readonly usernameInput: Locator;
+  readonly passwordInput: Locator;
+  readonly submitButton: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.usernameInput = page.locator('input[name="username"]');
+    this.passwordInput = page.getByLabel('Password');
+    this.submitButton = page.getByRole('button', { name: 'Log in' });
+  }
+
+  async goto() {
+    await this.page.goto('/login');
+  }
+
+  async login(username: string, password: string) {
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+    await this.submitButton.click();
+  }
+}
 ```
 
-### Environment Configuration
-- **Development** (default): SauceDemo website
-- **Staging**: Custom staging environment  
-- **Production**: Custom production environment
-- Configuration file: `config/env.config.ts`
-- Environment override: Set `TEST_ENV=staging` or `TEST_ENV=prod`
-
-### Key Features
-- **Page Object Model**: Tests use page objects in `/pages` directory
-- **Data-driven testing**: Uses CSV files in `/data` directory
-- **Multi-environment**: Supports dev/staging/prod environments
-- **TypeScript**: Full TypeScript support with path aliases
-- **Authentication**: Global auth setup (currently commented out)
-- **Parallel execution**: Configurable workers for CI/CD
-
-### Working Example - Reliable Test Pattern
+**tests/login.spec.ts (Basic Example)**
 ```typescript
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import config from '../config';
 
-test('reliable local test', async ({ page }) => {
-  // Create local HTML for testing
-  const html = `
-    <!DOCTYPE html>
-    <html><body>
-      <h1>Test Page</h1>
-      <input id="username" placeholder="Username" />
-      <button id="submit">Submit</button>
-    </body></html>
-  `;
-  await page.setContent(html);
-  
-  // Interact with elements
-  await page.fill('#username', 'testuser');
-  await page.click('#submit');
-  
-  // Assert results
-  await expect(page.locator('h1')).toHaveText('Test Page');
+const landpageURL = '/dashboard';
+test('user can log in', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  await loginPage.login(config.username, config.password);
+  await expect(page).toHaveURL(landpageURL);
 });
 ```
 
-### Troubleshooting
-- **Browser install fails**: Use system Chrome with `channel: 'chrome'`
-- **Tests timeout**: Network issues with external sites, use local tests
-- **Display errors**: Ensure `headless: true` in configuration
-- **SSL errors**: Add `ignoreHTTPSErrors: true` and SSL bypass args
-- **TypeScript errors**: Run `npx tsc --noEmit` to check compilation
+**tests/dashboard.spec.ts (Example with hooks)**
+```typescript
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import { DashboardPage } from '../pages/DashboardPage';
+import config from '../config';
 
-### Critical Timeouts and Warnings
-- **npm install**: ~3 seconds - safe to use
-- **npx playwright install-deps**: ~150 seconds (2.5 minutes) - NEVER CANCEL
-- **npx playwright install**: ALWAYS FAILS - do not use
-- **npx tsc --noEmit**: ~2 seconds - safe to use  
-- **Test execution**: Varies by test complexity, 30-60 seconds typical
+test.describe('Dashboard Tests', () => {
+  let loginPage: LoginPage;
+  let dashboardPage: DashboardPage;
 
-### Development Workflow
-1. Always run `npm install` first
-2. Install system deps with `npx playwright install-deps` (wait 2.5 min)
-3. Verify TypeScript: `npx tsc --noEmit`
-4. Create custom config for system Chrome if testing
-5. Write tests using Page Object Model pattern
-6. Test locally with simple HTML before external sites
-7. Validate changes with TypeScript compilation
+  test.beforeEach(async ({ page }) => {
+    // Setup before each test
+    loginPage = new LoginPage(page);
+    dashboardPage = new DashboardPage(page);
+    
+    // Login before each test
+    await loginPage.goto();
+    await loginPage.login(config.username, config.password);
+    await expect(page).toHaveURL('/dashboard');
+  });
 
-### Files to Check After Changes
-- **Always check**: TypeScript compilation with `npx tsc --noEmit`
-- **Page objects**: When modifying `pages/` directory
-- **Config files**: When changing environment or test settings
-- **Test data**: When modifying CSV files in `data/` directory
+  test.afterEach(async ({ page }) => {
+    // print console logs after each test
+     await utils.printConsoleErrorLogs();
+  });
+
+  test('should display user profile', async ({ page }) => {
+    await expect(dashboardPage.userProfile).toBeVisible();
+  });
+
+  test('should navigate to settings', async ({ page }) => {
+    await dashboardPage.navigateToSettings();
+    await expect(page).toHaveURL('/settings');
+  });
+});
+```
+
+**tests/api-integration.spec.ts (Example with beforeAll/afterAll)**
+```typescript
+import { test, expect } from '@playwright/test';
+import { APIRequestContext } from '@playwright/test';
+
+test.describe('API Integration Tests', () => {
+  let apiContext: APIRequestContext;
+  let testUserId: string;
+
+  test.beforeAll(async ({ playwright }) => {
+    // One-time setup - create API context
+    apiContext = await playwright.request.newContext({
+      baseURL: 'https://api.example.com',
+      extraHTTPHeaders: {
+        'Authorization': `Bearer ${process.env.API_TOKEN}`,
+      },
+    });
+
+    // Create test user for all tests
+    const response = await apiContext.post('/users', {
+      data: { name: 'Test User', email: 'test@example.com' }
+    });
+    const user = await response.json();
+    testUserId = user.id;
+  });
+
+  test.afterAll(async () => {
+    // One-time cleanup - delete test user
+    if (testUserId) {
+      await apiContext.delete(`/users/${testUserId}`);
+    }
+    await apiContext.dispose();
+  });
+
+  test('should fetch user data', async () => {
+    const response = await apiContext.get(`/users/${testUserId}`);
+    expect(response.ok()).toBeTruthy();
+  });
+
+  test('should update user data', async () => {
+    const response = await apiContext.patch(`/users/${testUserId}`, {
+      data: { name: 'Updated Name' }
+    });
+    expect(response.ok()).toBeTruthy();
+  });
+});
+```
+
+**Patterns:**
+- Element and function reuse through page objects.
+- Robust selectors for reliability.
+- Each test fully independent and self-contained.
+- Check existing page objects before creating new ones for maximum reusability.
+- **Appropriate use of test hooks for setup and cleanup operations.**
+
+---
+
+**Summary:**  
+This workflow ensures robust, maintainable Playwright test automation using reliable selectors, interactive/manual fallback, and the POM standard. Each test script is independent and ready for scalable development with maximum code reuse and proper setup/cleanup through test hooks.
